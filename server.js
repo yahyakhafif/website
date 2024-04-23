@@ -22,18 +22,20 @@ const server = http.createServer((req, res) => {
         '.svg': 'image/svg+xml',
     }[extname] || 'application/octet-stream';
 
-    fs.readFile(filePath, (err, content) => {
+    fs.access(filePath, fs.constants.F_OK, (err) => {
         if (err) {
-            if (err.code === 'ENOENT') {
-                res.writeHead(404);
-                res.end('404 Not Found');
-            } else {
-                res.writeHead(500);
-                res.end('500 Internal Server Error');
-            }
+            res.writeHead(404);
+            res.end('404 Not Found');
         } else {
-            res.writeHead(200, { 'Content-Type': contentType });
-            res.end(content, 'utf-8');
+            fs.readFile(filePath, (err, content) => {
+                if (err) {
+                    res.writeHead(500);
+                    res.end('500 Internal Server Error');
+                } else {
+                    res.writeHead(200, { 'Content-Type': contentType });
+                    res.end(content, 'utf-8');
+                }
+            });
         }
     });
 });
